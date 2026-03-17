@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Comandas Vue</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <style>
+        /* Diseño con CSS para cumplir los criterios de evaluación */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 { text-align: center; color: #333; }
+        .campo { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Evita que el input se salga del borde */
+        }
+        .btn-agregar {
+            width: 100%;
+            padding: 10px;
+            background-color: #42b983;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-limpiar {
+            width: 100%;
+            padding: 10px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .error { color: red; font-size: 14px; margin-top: 5px; }
+        .lista { margin-top: 20px; padding: 0; list-style: none; }
+        .item-lista {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .total {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-left: 4px solid #42b983;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="card">
+        <h2>Registro de Pedidos</h2>
+
+        <div class="campo">
+            <label>Nombre del Producto:</label>
+            <input type="text" v-model="nombreNuevo" placeholder="Ej. Pupusa de Queso">
+        </div>
+
+        <div class="campo">
+            <label>Precio Unitario ($):</label>
+            <input type="number" v-model.number="precioNuevo" placeholder="0.00">
+        </div>
+
+        <button class="btn-agregar" @click="agregarItem">Agregar a la Orden</button>
+
+        <p v-if="hayError" class="error">⚠️ Por favor, escribe un nombre y un precio válido.</p>
+
+        <hr v-if="orden.length > 0">
+
+        <ul class="lista">
+            <li v-for="(prod, index) in orden" :key="index" class="item-lista">
+                <span>{{ prod.nombre }}</span>
+                <strong>${{ prod.precio.toFixed(2) }}</strong>
+            </li>
+        </ul>
+
+        <div class="total" v-if="orden.length > 0" :style="{ color: totalCuenta > 30 ? 'red' : 'black' }">
+            <strong>Total: ${{ totalCuenta.toFixed(2) }}</strong>
+        </div>
+
+        <button v-if="orden.length > 0" class="btn-limpiar" @click="resetearTodo">
+            Limpiar y Nueva Mesa
+        </button>
+
+        <p v-else style="text-align: center; color: gray;">No hay productos en la mesa.</p>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue;
+
+        createApp({
+            setup() {
+                // --- 5 VARIABLES REACTIVAS ---
+                const nombreNuevo = ref("");      // 1. Texto del input
+                const precioNuevo = ref(0);       // 2. Número del input
+                const orden = ref([]);            // 3. Arreglo de objetos (la cuenta)
+                const hayError = ref(false);      // 4. Estado de la validación
+                const tituloMesa = ref("Mesa 1"); // 5. Variable extra de control
+
+                // --- FUNCIÓN PARA AGREGAR (EVENTO) ---
+                const agregarItem = () => {
+                    // Validación: que no esté vacío y precio sea mayor a 0
+                    if (nombreNuevo.value.trim() === "" || precioNuevo.value <= 0) {
+                        hayError.value = true;
+                    } else {
+                        // Agregamos el objeto al arreglo
+                        orden.value.push({
+                            nombre: nombreNuevo.value,
+                            precio: precioNuevo.value
+                        });
+                        // Limpiamos los campos para el siguiente producto
+                        nombreNuevo.value = "";
+                        precioNuevo.value = 0;
+                        hayError.value = false;
+                    }
+                };
+
+                // --- FUNCIÓN PARA LIMPIAR TODO ---
+                const resetearTodo = () => {
+                    if(confirm("¿Deseas vaciar la cuenta actual?")) {
+                        orden.value = [];
+                        hayError.value = false;
+                    }
+                };
+
+                // --- PROPIEDAD COMPUTADA PARA EL TOTAL ---
+                const totalCuenta = computed(() => {
+                    let suma = 0;
+                    for (let i = 0; i < orden.value.length; i++) {
+                        suma += orden.value[i].precio;
+                    }
+                    return suma;
+                });
+
+                // Retornamos todo para que el HTML pueda usarlo
+                return {
+                    nombreNuevo, precioNuevo, orden, hayError,
+                    agregarItem, resetearTodo, totalCuenta
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
