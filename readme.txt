@@ -51,3 +51,4 @@ la cuenta total esté mal calculada o que la lista se llene de basura.
 
 
 Alumno: Josue Alexander Turcios Quintanilla
+Alumno: Jose Aristides Torres Ramos
